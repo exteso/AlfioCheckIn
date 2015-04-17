@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <LinearLayout
+        android:orientation="vertical" android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin">
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/event_configuration_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name"
+            app:met_floatingLabel="highlight"/>
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/event_configuration_event_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Event Name"
+            app:met_floatingLabel="highlight"/>
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/event_configuration_baseurl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Base url"
+            app:met_floatingLabel="highlight"/>
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/event_configuration_username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Username"
+            app:met_floatingLabel="highlight"/>
+
+        <com.rengwuxian.materialedittext.MaterialEditText
+            android:id="@+id/event_configuration_pwd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Password"
+            app:met_floatingLabel="highlight"/>
+
+        <TextView android:text="OR"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="32sp"/>
+
+        <LinearLayout
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <com.gc.materialdesign.views.ButtonRectangle
+                android:id="@+id/event_configuration_scan_username_pwd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" Scan password "/>
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginTop="32sp">
+
+            <RelativeLayout android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <com.gc.materialdesign.views.ButtonFlat
+                    android:id="@+id/event_configuration_cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:text="Cancel"/>
+                <com.gc.materialdesign.views.ButtonFlat
+                    android:id="@+id/event_configuration_create_or_update"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:layout_alignParentRight="true"
+                    android:text="Create"/>
+            </RelativeLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    </ScrollView>
