@@ -21,6 +21,7 @@ import com.google.zxing.integration.android.IntentResult;
 import com.squareup.otto.Subscribe;
 
 import butterknife.ButterKnife;
+import butterknife.InjectView;
 import checkin.alf.io.alfiocheckin.event.CheckInFailure;
 import checkin.alf.io.alfiocheckin.event.CheckInSuccess;
 import checkin.alf.io.alfiocheckin.event.FetchCSRFTokenFailure;
@@ -38,6 +39,43 @@ public class MainActivity extends ActionBarActivity {
 
     private CheckInService checkInService;
     private ActionBar actionBar;
+
+    //
+    @InjectView(R.id.login_load)
+    View load;
+
+    @InjectView(R.id.barcode_scanner)
+    ButtonRectangle scan;
+
+    @InjectView(R.id.cardTicketDetail)
+    View cardTicketDetail;
+
+
+    @InjectView(R.id.cardCancelButton)
+    ButtonFlat cancel;
+
+    @InjectView(R.id.cardCheckIn)
+    ButtonFlat checkIn;
+
+
+    @InjectView(R.id.ticketStatus)
+    TextView ticketStatus;
+
+    @InjectView(R.id.ticketMessage)
+    TextView ticketMessage;
+
+    @InjectView(R.id.ticketFullName)
+    TextView ticketFullName;
+
+    @InjectView(R.id.ticketEmail)
+    TextView ticketEmail;
+
+    @InjectView(R.id.ticketCompany)
+    TextView ticketCompany;
+
+    @InjectView(R.id.ticketNotes)
+    TextView ticketNotes;
+    //
 
     //TODO: GRUUUUUIK, cleanup, find a better way :D
     private volatile CsrfAndEventId csrfAndEventId;
@@ -74,20 +112,17 @@ public class MainActivity extends ActionBarActivity {
 
         AppConfiguration conf = updateActionBarTitle();
 
-        final View load = findViewById(R.id.login_load);
-        final ButtonRectangle scan = (ButtonRectangle) findViewById(R.id.barcode_scanner);
+
 
         scan.setVisibility(View.INVISIBLE);
         load.setVisibility(View.INVISIBLE);
-        findViewById(R.id.cardTicketDetail).setVisibility(View.INVISIBLE);
+        cardTicketDetail.setVisibility(View.INVISIBLE);
 
         scan.setOnClickListener(new TriggerScanListener());
 
         if (conf != null && conf.getCurrentConfiguration() != null) {
             connect(conf);
         }
-
-        ButtonFlat cancel = (ButtonFlat) findViewById(R.id.cardCancelButton);
 
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,7 +132,6 @@ public class MainActivity extends ActionBarActivity {
             }
         });
 
-        ButtonFlat checkIn = (ButtonFlat) findViewById(R.id.cardCheckIn);
 
     }
 
@@ -105,9 +139,6 @@ public class MainActivity extends ActionBarActivity {
         if (conf == null || conf.getCurrentConfiguration() == null) {
             return;
         }
-
-        final View load = findViewById(R.id.login_load);
-        final View scan = findViewById(R.id.barcode_scanner);
         load.setVisibility(View.VISIBLE);
         checkInService.fetchCSRFTokenAndEventId(conf.getCurrentConfiguration());
     }
@@ -118,8 +149,8 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void run() {
                 MainActivity.this.csrfAndEventId = success.csrfAndEventId;
-                findViewById(R.id.barcode_scanner).setVisibility(View.VISIBLE);
-                findViewById(R.id.login_load).setVisibility(View.INVISIBLE);
+                scan.setVisibility(View.VISIBLE);
+                load.setVisibility(View.INVISIBLE);
 
                 Context context = getApplicationContext();
                 CharSequence text = "Connected with success";
@@ -136,7 +167,7 @@ public class MainActivity extends ActionBarActivity {
         MainActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                findViewById(R.id.login_load).setVisibility(View.INVISIBLE);
+                load.setVisibility(View.INVISIBLE);
                 Context context = getApplicationContext();
                 CharSequence text = "Error while doing login.";
                 int duration = Toast.LENGTH_SHORT;
@@ -180,8 +211,6 @@ public class MainActivity extends ActionBarActivity {
             if (scanResult != null && scanResult.getContents() != null) {
 
                 AppConfiguration conf = getConf();
-                final View load = findViewById(R.id.login_load);
-                final Runnable showError = getShowErrorToast();
                 load.setVisibility(View.VISIBLE);
                 String parsedCode = scanResult.getContents();
                 Log.i("parsed code is ", parsedCode);
@@ -215,7 +244,6 @@ public class MainActivity extends ActionBarActivity {
         return new Runnable() {
             @Override
             public void run() {
-                View load = findViewById(R.id.login_load);
                 Context context = getApplicationContext();
                 CharSequence text = "Error while fetching ticket info. Maybe you should do a reconnect";
                 int duration = Toast.LENGTH_LONG;
@@ -270,13 +298,10 @@ public class MainActivity extends ActionBarActivity {
 
         @Override
         public void run() {
-            final View load = findViewById(R.id.login_load);
-            load.setVisibility(View.INVISIBLE);
-            View ticketCard = findViewById(R.id.cardTicketDetail);
-            ticketCard.setVisibility(View.VISIBLE);
-            final Runnable showError = getShowErrorToast();
 
-            ButtonFlat checkIn = (ButtonFlat) findViewById(R.id.cardCheckIn);
+            load.setVisibility(View.INVISIBLE);
+            cardTicketDetail.setVisibility(View.VISIBLE);
+
             checkIn.setText("Check In");
 
             if ("OK_READY_TO_BE_CHECKED_IN".equals(tc.result.status)) {
@@ -294,27 +319,22 @@ public class MainActivity extends ActionBarActivity {
                 checkIn.setText("Next");
                 checkIn.setOnClickListener(new TriggerScanListener());
             } else {
-                findViewById(R.id.cardCheckIn).setVisibility(View.INVISIBLE);
+                checkIn.setVisibility(View.INVISIBLE);
             }
 
-            setText(R.id.ticketStatus, tc.result.status);
-            setText(R.id.ticketMessage, tc.result.message);
-            setText(R.id.ticketFullName, tc.ticket.fullName);
-            setText(R.id.ticketEmail, tc.ticket.email);
-            setText(R.id.ticketCompany, tc.ticket.company);
-            setText(R.id.ticketNotes, tc.ticket.notes);
+            ticketStatus.setText(tc.result.status);
+            ticketMessage.setText(tc.result.message);
+            ticketFullName.setText(tc.ticket.fullName);
+            ticketEmail.setText(tc.ticket.email);
+            ticketCompany.setText(tc.ticket.company);
+            ticketNotes.setText(tc.ticket.notes);
         }
-    }
-
-    private void setText(int id, String value) {
-        TextView txt = (TextView) findViewById(id);
-        txt.setText(value);
     }
 
     private class TriggerScanListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            findViewById(R.id.cardTicketDetail).setVisibility(View.INVISIBLE);
+            cardTicketDetail.setVisibility(View.INVISIBLE);
             IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
             integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
             integrator.setResultDisplayDuration(0);
