@@ -19,11 +19,19 @@ import com.melnykov.fab.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import checkin.alf.io.alfiocheckin.model.AlfioConfiguration;
 import checkin.alf.io.alfiocheckin.model.AppConfiguration;
 
 //https://github.com/makovkastar/FloatingActionButton/blob/master/README.md
 public class SettingsActivity extends Activity {
+
+    @InjectView(R.id.settings_list)
+    ListView listView;
+
+    @InjectView(R.id.settings_fab)
+    FloatingActionButton fab;
 
 
     private AppConfiguration getConf() {
@@ -36,8 +44,9 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.config_list);
 
-        ListView listView = (ListView) findViewById(R.id.settings_list);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.settings_fab);
+        ButterKnife.inject(this);
+
+
         fab.attachToListView(listView);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,7 +82,6 @@ public class SettingsActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
-            ListView listView = (ListView) findViewById(R.id.settings_list);
             CustomAdapter ca = (CustomAdapter) listView.getAdapter();
             ca.clear();
             ca.addAll(getAlfioConfigurations());

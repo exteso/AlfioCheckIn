@@ -20,6 +20,7 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 import com.squareup.otto.Subscribe;
 
+import butterknife.ButterKnife;
 import checkin.alf.io.alfiocheckin.event.CheckInFailure;
 import checkin.alf.io.alfiocheckin.event.CheckInSuccess;
 import checkin.alf.io.alfiocheckin.event.FetchCSRFTokenFailure;
@@ -65,6 +66,8 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        ButterKnife.inject(this);
 
         this.actionBar = getSupportActionBar();
         this.checkInService = new CheckInService(Common.BUS);

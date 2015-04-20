@@ -20,12 +20,42 @@ import com.google.zxing.integration.android.IntentResult;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import butterknife.OnClick;
 import checkin.alf.io.alfiocheckin.model.AlfioConfiguration;
 import checkin.alf.io.alfiocheckin.model.AppConfiguration;
 
 public class EventConfigurationActivity extends ActionBarActivity {
 
     private ActionBar actionBar;
+
+
+    @InjectView(R.id.event_configuration_name)
+    EditText name;
+
+    @InjectView(R.id.event_configuration_event_name)
+    EditText eventName;
+
+    @InjectView(R.id.event_configuration_baseurl)
+    EditText baseUrl;
+
+    @InjectView(R.id.event_configuration_username)
+    EditText username;
+
+    @InjectView(R.id.event_configuration_pwd)
+    EditText pwd;
+
+    @InjectView(R.id.event_configuration_create_or_update)
+    ButtonFlat createOrUpdate;
+
+    @InjectView(R.id.event_configuration_scan_username_pwd)
+    ButtonRectangle scan;
+
+    @InjectView(R.id.event_configuration_cancel)
+    ButtonFlat cancel;
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -84,16 +114,12 @@ public class EventConfigurationActivity extends ActionBarActivity {
 
         setContentView(R.layout.event_configuration);
 
+        ButterKnife.inject(this);
 
-        final AlfioConfiguration alfioConfToUpdate = (AlfioConfiguration) getIntent().getSerializableExtra("alfioConf");
 
-        final EditText name = (EditText) findViewById(R.id.event_configuration_name);
-        final EditText eventName = (EditText) findViewById(R.id.event_configuration_event_name);
-        final EditText baseUrl = (EditText) findViewById(R.id.event_configuration_baseurl);
-        final EditText username = (EditText) findViewById(R.id.event_configuration_username);
-        final EditText pwd = (EditText) findViewById(R.id.event_configuration_pwd);
+        AlfioConfiguration alfioConfToUpdate = (AlfioConfiguration) getIntent().getSerializableExtra("alfioConf");
 
-        ButtonFlat createOrUpdate = (ButtonFlat) findViewById(R.id.event_configuration_create_or_update);
+
 
         actionBar.setTitle("Add new instance");
 
@@ -103,92 +129,82 @@ public class EventConfigurationActivity extends ActionBarActivity {
             baseUrl.setText(alfioConfToUpdate.url);
             username.setText(alfioConfToUpdate.username);
             pwd.setText(alfioConfToUpdate.password);
-
             createOrUpdate.setText("Update");
             actionBar.setTitle("Update " + alfioConfToUpdate.name);
         }
 
+    }
 
-        ButtonRectangle scan = (ButtonRectangle) findViewById(R.id.event_configuration_scan_username_pwd);
+    @OnClick(R.id.event_configuration_cancel)
+    public void onClickCancel(View v) {
+        finish();
+    }
 
-        scan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                IntentIntegrator integrator = new IntentIntegrator(EventConfigurationActivity.this);
-                integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
-                integrator.setResultDisplayDuration(0);
-                integrator.setOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-                integrator.setPrompt(null);
-                integrator.initiateScan();
+    @OnClick(R.id.event_configuration_scan_username_pwd)
+    public void onClickScan(View v) {
+        IntentIntegrator integrator = new IntentIntegrator(EventConfigurationActivity.this);
+        integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE_TYPES);
+        integrator.setResultDisplayDuration(0);
+        integrator.setOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        integrator.setPrompt(null);
+        integrator.initiateScan();
+    }
+
+    @OnClick(R.id.event_configuration_create_or_update)
+    public void onClickCreateOrUpdate(View v) {
+
+        AlfioConfiguration alfioConfToUpdate = (AlfioConfiguration) getIntent().getSerializableExtra("alfioConf");
+
+        boolean hasError = false;
+
+        AppConfiguration conf = getConf();
+        SharedPreferences pref = getPref();
+
+        for (EditText txt : Arrays.asList(name, eventName, baseUrl, username, pwd)) {
+            if (txt.getText() == null || "".equals(txt.getText().toString())) {
+                txt.setError("Cannot be empty");
+                hasError = true;
             }
-        });
+        }
 
-        ButtonFlat cancel = (ButtonFlat) findViewById(R.id.event_configuration_cancel);
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EventConfigurationActivity.this.finish();
+        if (baseUrl.getError() == null && !(baseUrl.getText().toString().startsWith("http://") || baseUrl.getText().toString().startsWith("https://"))) {
+            baseUrl.setError("Must be an url");
+            hasError = true;
+        }
+
+        if (alfioConfToUpdate == null && name.getError() != null && conf != null && conf.configurations.containsKey(name.getText().toString())) {
+            name.setError("name is already present!");
+            hasError = true;
+        }
+
+        if (!hasError) {
+
+            String oldName = alfioConfToUpdate != null ? alfioConfToUpdate.name : null;
+
+            AlfioConfiguration alfConf = alfioConfToUpdate == null ? new AlfioConfiguration() : alfioConfToUpdate;
+
+            alfConf.name = name.getText().toString();
+            alfConf.eventName = eventName.getText().toString();
+            alfConf.url = baseUrl.getText().toString();
+            alfConf.username = username.getText().toString();
+            alfConf.password = pwd.getText().toString();
+
+
+            if (conf == null) {
+                conf = new AppConfiguration();
+                conf.selectedInstance = name.getText().toString();
+                conf.configurations = new HashMap<>();
             }
-        });
 
+            conf.configurations.put(name.getText().toString(), alfConf);
 
-        createOrUpdate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                boolean hasError = false;
-
-                AppConfiguration conf = getConf();
-                SharedPreferences pref = getPref();
-
-                for (EditText txt : Arrays.asList(name, eventName, baseUrl, username, pwd)) {
-                    if (txt.getText() == null || "".equals(txt.getText().toString())) {
-                        txt.setError("Cannot be empty");
-                        hasError = true;
-                    }
-                }
-
-                if (baseUrl.getError() == null && !(baseUrl.getText().toString().startsWith("http://") || baseUrl.getText().toString().startsWith("https://"))) {
-                    baseUrl.setError("Must be an url");
-                    hasError = true;
-                }
-
-                if (alfioConfToUpdate == null && name.getError() != null && conf != null && conf.configurations.containsKey(name.getText().toString())) {
-                    name.setError("name is already present!");
-                    hasError = true;
-                }
-
-                if (!hasError) {
-
-                    String oldName = alfioConfToUpdate != null ? alfioConfToUpdate.name : null;
-
-                    AlfioConfiguration alfConf = alfioConfToUpdate == null ? new AlfioConfiguration() : alfioConfToUpdate;
-
-                    alfConf.name = name.getText().toString();
-                    alfConf.eventName = eventName.getText().toString();
-                    alfConf.url = baseUrl.getText().toString();
-                    alfConf.username = username.getText().toString();
-                    alfConf.password = pwd.getText().toString();
-
-
-                    if (conf == null) {
-                        conf = new AppConfiguration();
-                        conf.selectedInstance = name.getText().toString();
-                        conf.configurations = new HashMap<>();
-                    }
-
-                    conf.configurations.put(name.getText().toString(), alfConf);
-
-                    if (oldName != null && oldName.equals(conf.selectedInstance)) {
-                        conf.selectedInstance = alfConf.name;
-                    }
-
-                    pref.edit().putString("alfio", Common.GSON.toJson(conf)).commit();
-                    EventConfigurationActivity.this.finish();
-                }
-
+            if (oldName != null && oldName.equals(conf.selectedInstance)) {
+                conf.selectedInstance = alfConf.name;
             }
-        });
+
+            pref.edit().putString("alfio", Common.GSON.toJson(conf)).commit();
+            finish();
+        }
     }
 
 
@@ -196,7 +212,7 @@ public class EventConfigurationActivity extends ActionBarActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
         if (scanResult != null && scanResult.getContents() != null) {
-            ((EditText) findViewById(R.id.event_configuration_pwd)).setText(scanResult.getContents());
+            pwd.setText(scanResult.getContents());
         }
     }
 }
