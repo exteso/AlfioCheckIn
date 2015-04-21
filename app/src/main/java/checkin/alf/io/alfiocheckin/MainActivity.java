@@ -2,7 +2,6 @@ package checkin.alf.io.alfiocheckin;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -29,63 +28,40 @@ import checkin.alf.io.alfiocheckin.event.FetchCSRFTokenSuccess;
 import checkin.alf.io.alfiocheckin.event.FetchTicketFailure;
 import checkin.alf.io.alfiocheckin.event.FetchTicketSuccess;
 import checkin.alf.io.alfiocheckin.model.AppConfiguration;
-import checkin.alf.io.alfiocheckin.model.CsrfAndEventId;
 import checkin.alf.io.alfiocheckin.model.TicketContainer;
 import checkin.alf.io.alfiocheckin.service.CheckInService;
+import checkin.alf.io.alfiocheckin.service.DataService;
 
 
 public class MainActivity extends ActionBarActivity {
 
-
-    private CheckInService checkInService;
-    private ActionBar actionBar;
-
     //
     @InjectView(R.id.login_load)
     View load;
-
     @InjectView(R.id.barcode_scanner)
     ButtonRectangle scan;
-
     @InjectView(R.id.cardTicketDetail)
     View cardTicketDetail;
-
-
     @InjectView(R.id.cardCancelButton)
     ButtonFlat cancel;
-
     @InjectView(R.id.cardCheckIn)
     ButtonFlat checkIn;
-
-
     @InjectView(R.id.ticketStatus)
     TextView ticketStatus;
-
     @InjectView(R.id.ticketMessage)
     TextView ticketMessage;
-
     @InjectView(R.id.ticketFullName)
     TextView ticketFullName;
-
     @InjectView(R.id.ticketEmail)
     TextView ticketEmail;
-
     @InjectView(R.id.ticketCompany)
     TextView ticketCompany;
-
     @InjectView(R.id.ticketNotes)
     TextView ticketNotes;
+    private DataService dataService;
+    private CheckInService checkInService;
+    private ActionBar actionBar;
     //
-
-    //TODO: GRUUUUUIK, cleanup, find a better way :D
-    private volatile CsrfAndEventId csrfAndEventId;
-    //
-
-    private AppConfiguration getConf() {
-        SharedPreferences pref = getSharedPreferences("alfio", Context.MODE_PRIVATE);
-        return Common.GSON.fromJson(pref.getString("alfio", null), AppConfiguration.class);
-    }
-
 
     @Override
     protected void onResume() {
@@ -109,9 +85,9 @@ public class MainActivity extends ActionBarActivity {
 
         this.actionBar = getSupportActionBar();
         this.checkInService = new CheckInService(Common.BUS);
+        this.dataService = new DataService(this);
 
         AppConfiguration conf = updateActionBarTitle();
-
 
 
         scan.setVisibility(View.INVISIBLE);
@@ -148,7 +124,7 @@ public class MainActivity extends ActionBarActivity {
         MainActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                MainActivity.this.csrfAndEventId = success.csrfAndEventId;
+                dataService.saveCsrfAndEventId(success.csrfAndEventId);
                 scan.setVisibility(View.VISIBLE);
                 load.setVisibility(View.INVISIBLE);
 
@@ -179,8 +155,8 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private AppConfiguration updateActionBarTitle() {
-        AppConfiguration conf = getConf();
-        String title = "Select a event to check in!";
+        AppConfiguration conf = dataService.getAppConfiguration();
+        String title = "Select an event to check in!";
         if (conf != null && conf.getCurrentConfiguration() != null) {
             title = "Check in for " + conf.selectedInstance;
         }
@@ -210,11 +186,11 @@ public class MainActivity extends ActionBarActivity {
             IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
             if (scanResult != null && scanResult.getContents() != null) {
 
-                AppConfiguration conf = getConf();
+                AppConfiguration conf = dataService.getAppConfiguration();
                 load.setVisibility(View.VISIBLE);
                 String parsedCode = scanResult.getContents();
                 Log.i("parsed code is ", parsedCode);
-                checkInService.getTicket(conf.getCurrentConfiguration(), this.csrfAndEventId, parsedCode);
+                checkInService.getTicket(conf.getCurrentConfiguration(), dataService.getCsrfAndEventId(), parsedCode);
             }
         }
     }
@@ -264,7 +240,7 @@ public class MainActivity extends ActionBarActivity {
             startActivityForResult(intent, 1);
             return true;
         } else if (id == R.id.action_reconnect) {
-            connect(getConf());
+            connect(dataService.getAppConfiguration());
         }
 
         return super.onOptionsItemSelected(item);
@@ -309,8 +285,8 @@ public class MainActivity extends ActionBarActivity {
                     @Override
                     public void onClick(View v) {
                         load.setVisibility(View.VISIBLE);
-                        AppConfiguration conf = getConf();
-                        checkInService.checkIn(conf.getCurrentConfiguration(), MainActivity.this.csrfAndEventId, parsedCode);
+                        AppConfiguration conf = dataService.getAppConfiguration();
+                        checkInService.checkIn(conf.getCurrentConfiguration(), dataService.getCsrfAndEventId(), parsedCode);
                     }
                 });
 

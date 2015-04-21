@@ -1,8 +1,6 @@
 package checkin.alf.io.alfiocheckin;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
@@ -25,36 +23,28 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import checkin.alf.io.alfiocheckin.model.AlfioConfiguration;
 import checkin.alf.io.alfiocheckin.model.AppConfiguration;
+import checkin.alf.io.alfiocheckin.service.DataService;
 
 public class EventConfigurationActivity extends ActionBarActivity {
 
-    private ActionBar actionBar;
-
-
     @InjectView(R.id.event_configuration_name)
     EditText name;
-
     @InjectView(R.id.event_configuration_event_name)
     EditText eventName;
-
     @InjectView(R.id.event_configuration_baseurl)
     EditText baseUrl;
-
     @InjectView(R.id.event_configuration_username)
     EditText username;
-
     @InjectView(R.id.event_configuration_pwd)
     EditText pwd;
-
     @InjectView(R.id.event_configuration_create_or_update)
     ButtonFlat createOrUpdate;
-
     @InjectView(R.id.event_configuration_scan_username_pwd)
     ButtonRectangle scan;
-
     @InjectView(R.id.event_configuration_cancel)
     ButtonFlat cancel;
-
+    private ActionBar actionBar;
+    private DataService dataService;
 
 
     @Override
@@ -76,34 +66,25 @@ public class EventConfigurationActivity extends ActionBarActivity {
         int id = item.getItemId();
         if (id == R.id.edit_alfio_configuration_set_as_active) {
 
-            SharedPreferences pref = getPref();
-            AppConfiguration conf = getConf();
+
+            AppConfiguration conf = dataService.getAppConfiguration();
             conf.selectedInstance = alfioConfToUpdate.name;
-            pref.edit().putString("alfio", Common.GSON.toJson(conf)).commit();
-
+            dataService.saveAppConfiguration(conf);
         } else if (id == R.id.edit_alfio_configuration_delete) {
-            SharedPreferences pref = getPref();
-            AppConfiguration conf = getConf();
 
+            AppConfiguration conf = dataService.getAppConfiguration();
             conf.configurations.remove(alfioConfToUpdate.name);
             if (conf.selectedInstance.equals(alfioConfToUpdate.name)) {
                 conf.selectedInstance = null;
             }
-            pref.edit().putString("alfio", Common.GSON.toJson(conf)).commit();
+
+            dataService.saveAppConfiguration(conf);
             this.finish();
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-
-    private SharedPreferences getPref() {
-        return getSharedPreferences("alfio", Context.MODE_PRIVATE);
-    }
-
-    private AppConfiguration getConf() {
-        return Common.GSON.fromJson(getPref().getString("alfio", null), AppConfiguration.class);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -116,9 +97,10 @@ public class EventConfigurationActivity extends ActionBarActivity {
 
         ButterKnife.inject(this);
 
+        this.dataService = new DataService(this);
+
 
         AlfioConfiguration alfioConfToUpdate = (AlfioConfiguration) getIntent().getSerializableExtra("alfioConf");
-
 
 
         actionBar.setTitle("Add new instance");
@@ -157,8 +139,7 @@ public class EventConfigurationActivity extends ActionBarActivity {
 
         boolean hasError = false;
 
-        AppConfiguration conf = getConf();
-        SharedPreferences pref = getPref();
+        AppConfiguration conf = dataService.getAppConfiguration();
 
         for (EditText txt : Arrays.asList(name, eventName, baseUrl, username, pwd)) {
             if (txt.getText() == null || "".equals(txt.getText().toString())) {
@@ -202,7 +183,8 @@ public class EventConfigurationActivity extends ActionBarActivity {
                 conf.selectedInstance = alfConf.name;
             }
 
-            pref.edit().putString("alfio", Common.GSON.toJson(conf)).commit();
+            dataService.saveAppConfiguration(conf);
+
             finish();
         }
     }
