@@ -17,6 +17,7 @@ import com.google.zxing.integration.android.IntentResult;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -194,7 +195,10 @@ public class EventConfigurationActivity extends ActionBarActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
         if (scanResult != null && scanResult.getContents() != null) {
-            pwd.setText(scanResult.getContents());
+            Map<String, String> scannedMap = Common.GSON.fromJson(scanResult.getContents(), Map.class);
+            username.setText(scannedMap.get("username"));
+            pwd.setText(scannedMap.get("password"));
+            baseUrl.setText(scannedMap.get("baseUrl"));
         }
     }
 }
