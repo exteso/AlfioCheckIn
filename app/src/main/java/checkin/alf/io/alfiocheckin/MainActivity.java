@@ -23,8 +23,8 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import checkin.alf.io.alfiocheckin.event.CheckInFailure;
 import checkin.alf.io.alfiocheckin.event.CheckInSuccess;
-import checkin.alf.io.alfiocheckin.event.FetchCSRFTokenFailure;
-import checkin.alf.io.alfiocheckin.event.FetchCSRFTokenSuccess;
+import checkin.alf.io.alfiocheckin.event.FetchEventIdFailure;
+import checkin.alf.io.alfiocheckin.event.FetchEventIdSuccess;
 import checkin.alf.io.alfiocheckin.event.FetchTicketFailure;
 import checkin.alf.io.alfiocheckin.event.FetchTicketSuccess;
 import checkin.alf.io.alfiocheckin.model.AppConfiguration;
@@ -116,15 +116,15 @@ public class MainActivity extends ActionBarActivity {
             return;
         }
         load.setVisibility(View.VISIBLE);
-        checkInService.fetchCSRFTokenAndEventId(conf.getCurrentConfiguration());
+        checkInService.fetchEventId(conf.getCurrentConfiguration());
     }
 
     @Subscribe
-    public void onFetchCSRFTokenSuccess(final FetchCSRFTokenSuccess success) {
+    public void onFetchEventIdSuccess(final FetchEventIdSuccess success) {
         MainActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                dataService.saveCsrfAndEventId(success.csrfAndEventId);
+                dataService.saveCsrfAndEventId(success.eventId);
                 scan.setVisibility(View.VISIBLE);
                 load.setVisibility(View.INVISIBLE);
 
@@ -139,7 +139,7 @@ public class MainActivity extends ActionBarActivity {
     }
 
     @Subscribe
-    public void onFetchCSRFTokenFailure(FetchCSRFTokenFailure failure) {
+    public void onFetchEventIdFailure(FetchEventIdFailure failure) {
         MainActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -190,7 +190,7 @@ public class MainActivity extends ActionBarActivity {
                 load.setVisibility(View.VISIBLE);
                 String parsedCode = scanResult.getContents();
                 Log.i("parsed code is ", parsedCode);
-                checkInService.getTicket(conf.getCurrentConfiguration(), dataService.getCsrfAndEventId(), parsedCode);
+                checkInService.getTicket(conf.getCurrentConfiguration(), dataService.getEventId(), parsedCode);
             }
         }
     }
@@ -286,7 +286,7 @@ public class MainActivity extends ActionBarActivity {
                     public void onClick(View v) {
                         load.setVisibility(View.VISIBLE);
                         AppConfiguration conf = dataService.getAppConfiguration();
-                        checkInService.checkIn(conf.getCurrentConfiguration(), dataService.getCsrfAndEventId(), parsedCode);
+                        checkInService.checkIn(conf.getCurrentConfiguration(), dataService.getEventId(), parsedCode);
                     }
                 });
 

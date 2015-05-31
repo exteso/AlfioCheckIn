@@ -10,7 +10,7 @@ import java.util.List;
 import checkin.alf.io.alfiocheckin.Common;
 import checkin.alf.io.alfiocheckin.model.AlfioConfiguration;
 import checkin.alf.io.alfiocheckin.model.AppConfiguration;
-import checkin.alf.io.alfiocheckin.model.CsrfAndEventId;
+import checkin.alf.io.alfiocheckin.model.EventId;
 
 /**
  * Created by sylvain on 4/21/15.
@@ -18,7 +18,7 @@ import checkin.alf.io.alfiocheckin.model.CsrfAndEventId;
 public class DataService {
 
     private static final String KEY_ALFIO = "alfio";
-    private static final String KEY_CSRF_AND_EVENT_ID = "csrfAndEventId";
+    private static final String EVENT_ID = "eventId";
 
     private final SharedPreferences sharedPreferences;
 
@@ -44,12 +44,12 @@ public class DataService {
         sharedPreferences.edit().putString(KEY_ALFIO, Common.GSON.toJson(appConfiguration)).apply();
     }
 
-    public void saveCsrfAndEventId(CsrfAndEventId csrfAndEventId) {
-        sharedPreferences.edit().putString(KEY_CSRF_AND_EVENT_ID, Common.GSON.toJson(csrfAndEventId)).apply();
+    public void saveCsrfAndEventId(EventId eventId) {
+        sharedPreferences.edit().putString(EVENT_ID, Common.GSON.toJson(eventId)).apply();
     }
 
-    public CsrfAndEventId getCsrfAndEventId() {
-        String s = sharedPreferences.getString(KEY_CSRF_AND_EVENT_ID, null);
-        return Common.GSON.fromJson(s, CsrfAndEventId.class);
+    public EventId getEventId() {
+        String s = sharedPreferences.getString(EVENT_ID, null);
+        return Common.GSON.fromJson(s, EventId.class);
     }
 }
